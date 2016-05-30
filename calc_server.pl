@@ -11,29 +11,26 @@ my $operator_precedence_table = {
         '**' => {p => 3, a => 'r'},
 };
 
-sub ShuntingYardCalc(@)
+sub CheckInput(@)
 {
     my (@arr) =  @_;
     my $i = 0;
-    my $next = 0;
     for my $el (@arr)
     {
-        if(($i != 0 || $el !~ m/^\d+$/) && ($el !~ m/^\d+$/ && !defined $$operator_precedence_table{$el} 
+        if(($i != 0 || $el !~ m/^\d+$/) && ($el !~ m/^\d+$/ && !defined $$operator_precedence_table{$el}
                 || (defined $$operator_precedence_table{$el} && $arr[$i - 1] !~ m/^\d+$/)
                 || ($el =~ m/^\d+$/ && $arr[$i - 1] =~ m/^\d+$/)))
         {
-            my $msg = "Invalid input\n";
-            syswrite FH, $msg, length $msg;
-            $next = 1;
-            last;
+            return 1;
         }
         $i++;
+    }
+    return 0;
 
-    }
-    if($next)
-    {
-        next;
-    }
+}
+sub ShuntingYardCalc(@)
+{
+    my (@arr) =  @_;
 
     my (@nums, @ops, $sum);
     my $j = 0;
@@ -92,8 +89,15 @@ while(accept(FH, F))
     {
         print("[$$] $_\n");
         my @arr = split(/,/, $_);
-        
-        my $res = ShuntingYardCalc(@arr);
+        my $res;
+        if(CheckInput(@arr) == 0)
+        {
+            $res = ShuntingYardCalc(@arr);
+        }
+        else
+        {
+            $res = "Invalid input!"
+        }
         $res .= "\n";  
             
         syswrite FH, $res, length $res ;
