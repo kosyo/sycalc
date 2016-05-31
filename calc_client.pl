@@ -23,9 +23,6 @@ sub StartClient()
     connect(F, $sin)
         or die "Couldn't connect to $host:$port: $!\n";
 
-    my $old_fh = select(F); 
-    $| = 1;                # don't buffer output
-    select($old_fh);
     my $line = <STDIN>;
 
     my $expr = ParseExpression($line);
