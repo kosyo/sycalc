@@ -73,41 +73,46 @@ sub ShuntingYardCalc(@)
     return $nums[0];
 }
 
-socket(F, PF_INET, SOCK_STREAM, getprotobyname('tcp')) || die $!;
-my $sin = sockaddr_in (5000, INADDR_ANY);
-my $length = 10;
-bind(F,$sin)  || die $!;
-listen(F, $length) || die $!;
-while(accept(FH, F))
+sub StartServer()
 {
-    next if my $pid = fork;
-    die "fork: $!" unless defined $pid;
-    close(F);
-    print("[$$] CONNECTED\n");
-
-    while(<FH>)
+    socket(F, PF_INET, SOCK_STREAM, getprotobyname('tcp')) || die $!;
+    my $sin = sockaddr_in (5000, INADDR_ANY);
+    my $length = 10;
+    bind(F,$sin)  || die $!;
+    listen(F, $length) || die $!;
+    while(accept(FH, F))
     {
-        print("[$$] $_\n");
-        my @arr = split(/,/, $_);
-        my $res;
-        if(CheckInput(@arr) == 0)
-        {
-            $res = ShuntingYardCalc(@arr);
-        }
-        else
-        {
-            $res = "Invalid input!"
-        }
-        $res .= "\n";  
-            
-        syswrite FH, $res, length $res ;
-        sysopen (RES, "result.txt", O_WRONLY|O_CREAT|O_APPEND, 0755) 
-            or die "cannot be opened. $!";
-        syswrite RES, $res, length $res;
-        close RES;
+        next if my $pid = fork;
+        die "fork: $!" unless defined $pid;
+        close(F);
+        print("[$$] CONNECTED\n");
 
+        while(<FH>)
+        {
+            print("[$$] $_\n");
+            my @arr = split(/,/, $_);
+            my $res;
+            if(CheckInput(@arr) == 0)
+            {
+                $res = ShuntingYardCalc(@arr);
+            }
+            else
+            {
+                $res = "Invalid input!"
+            }
+            $res .= "\n";  
+
+            syswrite FH, $res, length $res ;
+            sysopen (RES, "result.txt", O_WRONLY|O_CREAT|O_APPEND, 0755) 
+                or die "cannot be opened. $!";
+            syswrite RES, $res, length $res;
+            close RES;
+
+        }
+        close(FH);
+        print("[$$] EXIT\n");
+        exit;
     }
-    close(FH);
-    print("[$$] EXIT\n");
-    exit;
 }
+
+StartServer();
